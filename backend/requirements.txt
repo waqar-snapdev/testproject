@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pymongo[srv]
+python-dotenv
+fastapi-cors
+passlib[bcrypt]
+python-jose[cryptography]
+pydantic
