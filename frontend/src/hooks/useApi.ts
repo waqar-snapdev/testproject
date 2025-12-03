@@ -6,7 +6,8 @@ const useApi = () => {
     };
 
     try {
-      const response = await fetch(`/api/v1${url}`, { ...options, headers });
+      const baseUrl = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${baseUrl}/api/v1${url}`, { ...options, headers });
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ detail: 'An unknown error occurred' }));
