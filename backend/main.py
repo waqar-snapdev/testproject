@@ -15,6 +15,7 @@ origins = [
     "http://localhost:5173",
     "http://localhost:5139",
     "http://127.0.0.1:5173",
+    "https://test-front-6xk4.onrender.com",
     "https://test-front-6xk4.onrender.com/",
 ]
 
