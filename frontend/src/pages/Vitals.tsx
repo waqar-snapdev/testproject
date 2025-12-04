@@ -40,7 +40,7 @@ const Vitals = () => {
   const fetchLogs = async () => {
     try {
       const response = await api.get("/vitals");
-      setLogs(response.data);
+      setLogs(response);
     } catch (error) {
       console.error("Failed to fetch vitals logs", error);
     }
@@ -71,7 +71,7 @@ const Vitals = () => {
 
   const handleDelete = async (logId: string) => {
     try {
-      await api.delete(`/vitals/${logId}`);
+      await api.del(`/vitals/${logId}`);
       fetchLogs();
     } catch (error) {
       console.error("Failed to delete vitals log", error);

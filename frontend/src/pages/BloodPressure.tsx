@@ -40,7 +40,7 @@ const BloodPressure = () => {
   const fetchLogs = async () => {
     try {
       const response = await api.get("/bloodpressure");
-      setLogs(response.data);
+      setLogs(response);
     } catch (error) {
       console.error("Failed to fetch blood pressure logs", error);
     }
@@ -71,7 +71,7 @@ const BloodPressure = () => {
 
   const handleDelete = async (logId: string) => {
     try {
-      await api.delete(`/bloodpressure/${logId}`);
+      await api.del(`/bloodpressure/${logId}`);
       fetchLogs();
     } catch (error) {
       console.error("Failed to delete blood pressure log", error);

@@ -9,6 +9,16 @@ import {
 import { Heart, Pill } from "lucide-react";
 import { format } from "date-fns";
 import useApi from "@/hooks/useApi";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
 interface Symptom {
   id: string;
@@ -47,6 +57,7 @@ const HealthSummary = () => {
   const [medications, setMedications] = useState<Medication[]>([]);
   const [latestBloodPressure, setLatestBloodPressure] =
     useState<BloodPressure | null>(null);
+  const [bloodPressureHistory, setBloodPressureHistory] = useState<BloodPressure[]>([]);
   const [latestVitals, setLatestVitals] = useState<Vitals | null>(null);
   const api = useApi();
 
@@ -65,23 +76,33 @@ const HealthSummary = () => {
           api.get("/vitals"),
         ]);
         setLatestSymptom(
-          symptomsResponse.data.length > 0 ? symptomsResponse.data : null
-        );
-        setMedications(medicationsResponse.data);
-        setLatestBloodPressure(
-          bloodPressureResponse.data.length > 0
-            ? bloodPressureResponse.data
+          symptomsResponse.length > 0
+            ? symptomsResponse[symptomsResponse.length - 1]
             : null
         );
+        setMedications(medicationsResponse);
+        
+        // Sort blood pressure by date ascending for the chart
+        const sortedBP = [...bloodPressureResponse].sort(
+          (a: BloodPressure, b: BloodPressure) =>
+            new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+        setBloodPressureHistory(sortedBP);
+        setLatestBloodPressure(
+          sortedBP.length > 0 ? sortedBP[sortedBP.length - 1] : null
+        );
+
         setLatestVitals(
-          vitalsResponse.data.length > 0 ? vitalsResponse.data : null
+          vitalsResponse.length > 0
+            ? vitalsResponse[vitalsResponse.length - 1]
+            : null
         );
       } catch (error) {
         console.error("Failed to fetch health summary data", error);
       }
     };
     fetchData();
-  }, [api]);
+  }, []); // Removed [api] dependency to prevent infinite loop
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -181,20 +202,50 @@ const HealthSummary = () => {
           )}
         </CardHeader>
         <CardContent>
-          {latestBloodPressure ? (
-            <div className="flex items-center gap-4">
-              <div className="rounded-full bg-primary/10 p-2">
-                <Heart className="h-5 w-5 text-primary" />
+          {bloodPressureHistory.length > 0 ? (
+            <div className="h-[200px] w-full">
+              <div className="mb-4 flex items-center gap-4">
+                <div className="rounded-full bg-primary/10 p-2">
+                  <Heart className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">
+                    {latestBloodPressure?.systolic} /{" "}
+                    {latestBloodPressure?.diastolic} mmHg
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Latest Pulse: {latestBloodPressure?.pulse} bpm
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-medium">
-                  {latestBloodPressure.systolic} /{" "}
-                  {latestBloodPressure.diastolic} mmHg
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Pulse: {latestBloodPressure.pulse} bpm
-                </p>
-              </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={bloodPressureHistory}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(date) => format(new Date(date), "MM/dd")}
+                  />
+                  <YAxis />
+                  <Tooltip
+                    labelFormatter={(date) => format(new Date(date), "MMM d, yyyy h:mm a")}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="systolic"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    name="Systolic"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="diastolic"
+                    stroke="hsl(var(--destructive))"
+                    strokeWidth={2}
+                    name="Diastolic"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           ) : (
             <p>No blood pressure readings logged yet.</p>

@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import uuid
+print(">>> LOADING THE NEW MAIN.PY <<<")
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -14,6 +15,7 @@ origins = [
     "http://localhost:5173",
     "http://localhost:5139",
     "http://127.0.0.1:5173",
+    "https://test-front-6xk4.onrender.com/",
 ]
 
 app.add_middleware(
@@ -33,7 +35,8 @@ db = {
     "medications": [],
     "blood_pressure_logs": [],
     "vitals_logs": [],
-    "family_members": []
+    "family_members": [],
+    "appointments": []
 }
 
 def generate_id():
@@ -87,6 +90,14 @@ class FamilyMember(BaseModel):
     id: str
     name: str
     relation: str
+
+class Appointment(BaseModel):
+    id: str
+    date: datetime
+    doctor: str
+    specialty: str
+    location: str
+    notes: str | None = None
 
 # --- API Routes ---
 
@@ -248,3 +259,19 @@ async def remove_family_member(member_id: str):
         raise HTTPException(status_code=404, detail="Family member not found")
         
     return {"message": "Family member removed successfully"}
+
+@app.get("/api/v1/appointments", response_model=List[Appointment])
+async def get_appointments():
+    # Return some mock data if empty, for demonstration
+    if not db["appointments"]:
+        return [
+            Appointment(
+                id=generate_id(),
+                date=datetime.utcnow(),
+                doctor="Dr. Smith",
+                specialty="Cardiology",
+                location="City Hospital, Room 302",
+                notes="Regular checkup"
+            )
+        ]
+    return db["appointments"]

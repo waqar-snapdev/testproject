@@ -36,7 +36,11 @@ const Family = () => {
           request("/medications"),
         ]);
         setFamilyMembers(familyData);
-        setLatestSymptom(symptomData);
+        setLatestSymptom(
+          Array.isArray(symptomData) && symptomData.length > 0
+            ? symptomData[symptomData.length - 1]
+            : null
+        );
         setAppointments(appointmentData);
         setMedications(medicationData);
       } catch (error) {
@@ -61,7 +65,7 @@ const Family = () => {
     try {
       const invitedMember = await request("/family/invite", {
         method: "POST",
-        data: newMember,
+        body: JSON.stringify(newMember),
       });
       setFamilyMembers([...familyMembers, invitedMember]);
     } catch (error) {
